@@ -246,6 +246,9 @@ function routeActiveView() {
   document.getElementById("page-title").textContent = targetView.title;
   document.getElementById("page-subtitle").textContent = targetView.subtitle;
 
+  // Track current view on body for CSS-driven FAB visibility
+  document.body.setAttribute("data-view", menuTarget);
+
   // Render view-specific records
   const user = Storage.getCurrentUser();
   if (hash === "#dashboard") {

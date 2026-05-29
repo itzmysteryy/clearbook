@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Clearbook — Personal & Business Finance Manager</title>
   <meta name="description" content="Manage your personal or business budgets, transactions, savings, and debts in a minimal, trustworthy banking-grade interface.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -98,13 +101,18 @@
       <!-- Mobile Bottom Navigation -->
       <nav id="mobile-nav">
         <ul class="mobile-menu">
-          <li class="mobile-item active" data-target="dashboard"><a href="#dashboard"><span>📊</span>Dashboard</a></li>
-          <li class="mobile-item" data-target="transactions"><a href="#transactions"><span>💸</span>Txns</a></li>
-          <li class="mobile-item" data-target="budgets"><a href="#budgets"><span>🎯</span>Budgets</a></li>
-          <li class="mobile-item" data-target="savings-debts"><a href="#savings-debts"><span>🐖</span>Goals</a></li>
-          <li class="mobile-item" data-target="insights"><a href="#insights"><span>📈</span>Insights</a></li>
+          <li class="mobile-item active" data-target="dashboard"><a href="#dashboard"><span class="mobile-icon">📊</span><span class="mobile-label">Dashboard</span></a></li>
+          <li class="mobile-item" data-target="transactions"><a href="#transactions"><span class="mobile-icon">💸</span><span class="mobile-label">Txns</span></a></li>
+          <li class="mobile-item" data-target="budgets"><a href="#budgets"><span class="mobile-icon">🎯</span><span class="mobile-label">Budgets</span></a></li>
+          <li class="mobile-item" data-target="savings-debts"><a href="#savings-debts"><span class="mobile-icon">🐖</span><span class="mobile-label">Goals</span></a></li>
+          <li class="mobile-item" data-target="insights"><a href="#insights"><span class="mobile-icon">📈</span><span class="mobile-label">Insights</span></a></li>
         </ul>
       </nav>
+
+      <!-- Mobile Floating Action Button (FAB) -->
+      <button id="mobile-fab" aria-label="Add transaction" onclick="document.getElementById('btn-add-transaction')?.click()">
+        <span style="font-size: 1.5rem; line-height: 1;">＋</span>
+      </button>
 
       <!-- Content Area -->
       <main id="main-content">
