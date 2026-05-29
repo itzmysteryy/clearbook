@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clearbook — Personal & Business Finance Manager</title>
+  <meta name="description" content="Manage your personal or business budgets, transactions, savings, and debts in a minimal, trustworthy banking-grade interface.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Printable Header for PDF exports -->
+  <div class="print-only-header">
+    <h1 style="font-size: 24pt; margin-bottom: 8px;">Clearbook Financial Statement</h1>
+    <p style="font-size: 10pt; color: #475569;">Generated on <span id="print-date"></span> for <span id="print-user"></span></p>
+  </div>
+
+  <!-- App Wrapper -->
+  <div id="app-container">
+
+    <!-- Auth View Container (Full Screen) -->
+    <div id="auth-container" class="view-container active">
+      <div class="auth-card">
+        <div class="auth-header">
+          <div class="auth-logo">Clearbook</div>
+          <div class="auth-tagline">Your finances. Clear and simple.</div>
+        </div>
+
+        <div class="auth-tabs">
+          <div id="tab-login-toggle" class="auth-tab active" onclick="switchAuthTab('login')">Log In</div>
+          <div id="tab-signup-toggle" class="auth-tab" onclick="switchAuthTab('signup')">Sign Up</div>
+        </div>
+
+        <!-- Log In Form -->
+        <form id="login-form">
+          <div class="form-group">
+            <label for="login-username">Username</label>
+            <input type="text" id="login-username" class="input-control" required placeholder="Enter username">
+          </div>
+          <div class="form-group">
+            <label for="login-password">Password</label>
+            <input type="password" id="login-password" class="input-control" required placeholder="••••••••">
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 16px;">Log In to Clearbook</button>
+        </form>
+
+        <!-- Sign Up Form (Hidden by Default) -->
+        <form id="signup-form" style="display: none;">
+          <div class="form-group">
+            <label for="signup-username">Username</label>
+            <input type="text" id="signup-username" class="input-control" required placeholder="Choose a username">
+          </div>
+          <div class="form-group">
+            <label for="signup-password">Password</label>
+            <input type="password" id="signup-password" class="input-control" required placeholder="Choose a password">
+          </div>
+          <div class="form-group">
+            <label for="signup-confirm-password">Confirm Password</label>
+            <input type="password" id="signup-confirm-password" class="input-control" required placeholder="Confirm password">
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 16px;">Create Free Account</button>
+        </form>
+
+        <div id="auth-error-msg" style="color: var(--danger); font-size: 0.85rem; margin-top: 16px; text-align: center; display: none;"></div>
+      </div>
+    </div>
+
+    <!-- Main App Layout (Hidden until logged in) -->
+    <div id="app-layout" style="display: none; width: 100%; height: 100%;">
+      
+      <!-- Desktop Sidebar Navigation -->
+      <aside id="sidebar">
+        <div class="sidebar-brand">
+          <div class="brand-icon">C</div>
+          <div class="brand-name">Clearbook</div>
+        </div>
+
+        <ul class="sidebar-menu">
+          <li class="menu-item active" data-target="dashboard"><a href="#dashboard"><span>📊</span> Dashboard</a></li>
+          <li class="menu-item" data-target="transactions"><a href="#transactions"><span>💸</span> Transactions</a></li>
+          <li class="menu-item" data-target="budgets"><a href="#budgets"><span>🎯</span> Budgets</a></li>
+          <li class="menu-item" data-target="savings-debts"><a href="#savings-debts"><span>🐖</span> Goals & Debts</a></li>
+          <li class="menu-item" data-target="insights"><a href="#insights"><span>📈</span> Insights</a></li>
+        </ul>
+
+        <div class="sidebar-footer">
+          <div class="user-badge">
+            <div class="user-avatar" id="avatar-letter">U</div>
+            <div class="user-info">
+              <span class="username-display" id="user-display-name">Username</span>
+              <span class="user-status">Free Account</span>
+            </div>
+          </div>
+          <button id="sidebar-settings-btn" class="btn btn-secondary btn-sm" onclick="navigateTo('settings')" style="justify-content: flex-start; gap: 8px;">⚙️ Settings</button>
+        </div>
+      </aside>
+
+      <!-- Mobile Bottom Navigation -->
+      <nav id="mobile-nav">
+        <ul class="mobile-menu">
+          <li class="mobile-item active" data-target="dashboard"><a href="#dashboard"><span>📊</span>Dashboard</a></li>
+          <li class="mobile-item" data-target="transactions"><a href="#transactions"><span>💸</span>Txns</a></li>
+          <li class="mobile-item" data-target="budgets"><a href="#budgets"><span>🎯</span>Budgets</a></li>
+          <li class="mobile-item" data-target="savings-debts"><a href="#savings-debts"><span>🐖</span>Goals</a></li>
+          <li class="mobile-item" data-target="insights"><a href="#insights"><span>📈</span>Insights</a></li>
+        </ul>
+      </nav>
+
+      <!-- Content Area -->
+      <main id="main-content">
+        
+        <!-- App Header -->
+        <header class="app-header">
+          <div class="header-title-section">
+            <h1 id="page-title" style="font-size: 1.8rem; font-weight: 700;">Dashboard</h1>
+            <span class="header-subtitle" id="page-subtitle">Welcome back to Clearbook</span>
+          </div>
+          <div class="header-actions">
+            <div class="alert-bell" onclick="navigateTo('alerts')">
+              <span>🔔</span>
+              <div id="unread-alert-badge" class="badge-count" style="display: none;">0</div>
+            </div>
+            <button id="header-settings-btn" class="btn btn-secondary btn-sm" onclick="navigateTo('settings')" style="display: none;">⚙️ Settings</button>
+          </div>
+        </header>
+
+        <!-- Skeletons screens Loader -->
+        <div id="main-skeleton-loader" class="skeleton-wrapper" style="display: none;">
+          <div class="skeleton-flex-row">
+            <div class="skeleton-circle"></div>
+            <div class="skeleton-line skeleton-text-short"></div>
+          </div>
+          <div class="grid-3">
+            <div class="skeleton-rect"></div>
+            <div class="skeleton-rect"></div>
+            <div class="skeleton-rect"></div>
+          </div>
+          <div class="skeleton-rect" style="height: 250px;"></div>
+        </div>
+
+        <!-- Core SPA View Panels -->
+
+        <!-- 1. DASHBOARD VIEW -->
+        <div id="dashboard-view" class="view-container">
+          <div class="metric-grid">
+            <div class="metric-card">
+              <span class="metric-label">Net Balance (Selected Range)</span>
+              <span class="metric-value" id="dashboard-net-balance">$0.00</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">This Month's Spending</span>
+              <span class="metric-value expense" id="dashboard-month-spending">$0.00</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">This Month's Income</span>
+              <span class="metric-value income" id="dashboard-month-income">$0.00</span>
+            </div>
+          </div>
+
+          <div class="grid-dashboard">
+            <div class="dashboard-left">
+              <!-- Spending Trend SVG Chart -->
+              <div class="card">
+                <div class="card-header-row">
+                  <h3 class="card-title">📉 30-Day Spending Trend</h3>
+                  <span class="text-secondary" style="font-size: 0.8rem;" id="trend-chart-date-label">Last 30 Days</span>
+                </div>
+                <div class="chart-container-svg" id="dashboard-trend-chart-container" style="height: 220px;">
+                  <!-- Dynamically populated SVG Line Chart -->
+                </div>
+              </div>
+
+              <!-- Recent Transactions -->
+              <div class="card">
+                <div class="card-header-row">
+                  <h3 class="card-title">📝 Recent Transactions</h3>
+                  <button class="btn btn-secondary btn-sm" onclick="navigateTo('transactions')">View All</button>
+                </div>
+                <div class="table-container">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Details</th>
+                        <th>Category</th>
+                        <th>Date</th>
+                        <th style="text-align: right;">Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody id="dashboard-recent-transactions-tbody">
+                      <!-- Trxs records -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <div class="dashboard-right">
+              <!-- Spending by Category Donut SVG Chart -->
+              <div class="card">
+                <h3 class="card-title">🍩 Category Breakdown</h3>
+                <div class="chart-container-svg" id="dashboard-donut-chart-container" style="height: 200px;">
+                  <!-- Donut SVG -->
+                </div>
+                <div class="chart-legend" id="dashboard-donut-legend">
+                  <!-- Legend items -->
+                </div>
+              </div>
+
+              <!-- Month Budgets -->
+              <div class="card">
+                <h3 class="card-title">🎯 Budget Progress</h3>
+                <div id="dashboard-budgets-list" style="display: flex; flex-direction: column; gap: 12px;">
+                  <!-- Category budgets progress -->
+                </div>
+              </div>
+
+              <!-- Savings Cards -->
+              <div class="card">
+                <h3 class="card-title">🐖 Savings Goals</h3>
+                <div id="dashboard-savings-list" style="display: flex; flex-direction: column; gap: 12px;">
+                  <!-- Small savings summary -->
+                </div>
+              </div>
+
+              <!-- Upcoming Bills -->
+              <div class="card">
+                <h3 class="card-title">📅 Upcoming Bills (7 Days)</h3>
+                <div id="dashboard-upcoming-bills-list" style="display: flex; flex-direction: column; gap: 12px;">
+                  <!-- Recurring items list -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. TRANSACTIONS VIEW -->
+        <div id="transactions-view" class="view-container">
+          <div class="card">
+            <div class="card-header-row">
+              <h3 class="card-title">Transactions Ledger</h3>
+              <div style="display: flex; gap: 12px;">
+                <button class="btn btn-secondary btn-sm" id="btn-export-csv">📤 Export CSV</button>
+                <button class="btn btn-secondary btn-sm" id="btn-import-csv-trigger">📥 Import CSV</button>
+                <button class="btn btn-primary btn-sm" id="btn-add-transaction">➕ Add Transaction</button>
+              </div>
+            </div>
+
+            <!-- Filters & Search Toolbar -->
+            <div class="filters-row">
+              <input type="text" id="tx-search-title" class="input-control filter-input" placeholder="Search title...">
+              <select id="tx-filter-category" class="input-control filter-input">
+                <option value="all">All Categories</option>
+              </select>
+              <select id="tx-filter-type" class="input-control filter-input">
+                <option value="all">All Types</option>
+                <option value="income">Income Only</option>
+                <option value="expense">Expense Only</option>
+              </select>
+              <select id="tx-filter-range" class="input-control filter-input">
+                <option value="all">All Time</option>
+                <option value="this-month">This Month</option>
+                <option value="last-month">Last Month</option>
+                <option value="last-90">Last 90 Days</option>
+                <option value="custom">Custom Date Range...</option>
+              </select>
+              <select id="tx-sort-by" class="input-control filter-input">
+                <option value="date-desc">Newest First</option>
+                <option value="date-asc">Oldest First</option>
+                <option value="amount-desc">Highest Amount</option>
+                <option value="amount-asc">Lowest Amount</option>
+                <option value="category-asc">Category (A-Z)</option>
+              </select>
+            </div>
+
+            <!-- Custom date pickers (Shown only when Custom is chosen) -->
+            <div class="filters-row" id="tx-custom-date-row" style="display: none; margin-top: -8px;">
+              <div class="form-group" style="margin-bottom: 0;">
+                <input type="date" id="tx-custom-start" class="input-control" style="padding: 6px 12px;">
+              </div>
+              <span class="text-secondary">to</span>
+              <div class="form-group" style="margin-bottom: 0;">
+                <input type="date" id="tx-custom-end" class="input-control" style="padding: 6px 12px;">
+              </div>
+            </div>
+
+            <!-- Multi Select / Bulk Actions -->
+            <div id="tx-bulk-actions-row" class="card-header-row" style="display: none; background: var(--bg-color); padding: 8px 16px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+              <span class="text-secondary" id="tx-selected-count">0 items selected</span>
+              <button class="btn btn-danger btn-sm" id="btn-bulk-delete">🗑️ Delete Selected</button>
+            </div>
+
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width: 40px;"><input type="checkbox" id="tx-select-all"></th>
+                    <th>Details</th>
+                    <th>Category</th>
+                    <th>Date</th>
+                    <th style="text-align: right;">Amount</th>
+                    <th style="text-align: right;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="transactions-list-tbody">
+                  <!-- Tx items list -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Pagination buttons -->
+            <div class="pagination-row">
+              <span class="pagination-info" id="transactions-pagination-info">Showing 0-0 of 0</span>
+              <div class="pagination-buttons">
+                <button class="btn btn-secondary btn-sm" id="btn-prev-page" disabled>Previous</button>
+                <button class="btn btn-secondary btn-sm" id="btn-next-page" disabled>Next</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. BUDGET PLANNER VIEW -->
+        <div id="budgets-view" class="view-container">
+          <div class="card">
+            <div class="card-header-row">
+              <h3 class="card-title">Budgets List</h3>
+              <button class="btn btn-primary btn-sm" id="btn-add-budget">➕ Create Budget</button>
+            </div>
+            <div id="budgets-list-container" class="grid-2">
+              <!-- Budget Cards go here -->
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. SAVINGS GOALS & DEBT TRACKER VIEW -->
+        <div id="savings-debts-view" class="view-container">
+          <!-- Savings Goals Section -->
+          <div class="card">
+            <div class="card-header-row">
+              <h3 class="card-title">🐖 Savings Target Goals</h3>
+              <button class="btn btn-primary btn-sm" id="btn-add-saving-goal">➕ New Savings Goal</button>
+            </div>
+            <div id="savings-goals-grid" class="grid-3">
+              <!-- Goal items -->
+            </div>
+          </div>
+
+          <!-- Debts and Loans Section -->
+          <div class="card">
+            <div class="card-header-row">
+              <h3 class="card-title">💸 Debts & Loans</h3>
+              <button class="btn btn-primary btn-sm" id="btn-add-debt">➕ Add Loan / Debt</button>
+            </div>
+            <div id="debts-list-container" style="display: flex; flex-direction: column; gap: 16px;">
+              <!-- Debt items list -->
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. SPENDING INSIGHTS VIEW -->
+        <div id="insights-view" class="view-container">
+          <!-- Date selector presets -->
+          <div class="card">
+            <div class="card-header-row" style="flex-wrap: wrap; gap: 16px;">
+              <h3 class="card-title">📈 Spending Analysis & Reports</h3>
+              <div class="filters-row" style="margin-left: auto;">
+                <select id="insights-date-range" class="input-control filter-input" style="width: 200px;">
+                  <option value="this-month">This Month</option>
+                  <option value="last-month">Last Month</option>
+                  <option value="last-3-months">Last 3 Months</option>
+                  <option value="last-6-months" selected>Last 6 Months</option>
+                  <option value="this-year">This Year</option>
+                  <option value="custom">Custom Date Range...</option>
+                </select>
+              </div>
+            </div>
+            <!-- Custom Dates for Insights -->
+            <div class="filters-row" id="insights-custom-date-row" style="display: none; justify-content: flex-end; margin-top: -8px;">
+              <div class="form-group" style="margin-bottom: 0;">
+                <input type="date" id="insights-custom-start" class="input-control" style="padding: 6px 12px;">
+              </div>
+              <span class="text-secondary">to</span>
+              <div class="form-group" style="margin-bottom: 0;">
+                <input type="date" id="insights-custom-end" class="input-control" style="padding: 6px 12px;">
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 1 - Overview Strip -->
+          <div class="metric-grid">
+            <div class="metric-card">
+              <span class="metric-label">Total Spent in Period</span>
+              <span class="metric-value expense" id="insights-total-spent">$0.00</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">Total Earned in Period</span>
+              <span class="metric-value income" id="insights-total-earned">$0.00</span>
+            </div>
+            <div class="metric-card">
+              <span class="metric-label">Net Savings in Period</span>
+              <span class="metric-value net" id="insights-net-savings">$0.00</span>
+            </div>
+          </div>
+
+          <!-- Charts Row 1: Donut breakdown & Category podium -->
+          <div class="grid-2">
+            <!-- Category Donut -->
+            <div class="card">
+              <h3 class="card-title">🍩 Spend Category Distribution</h3>
+              <div class="chart-container-svg" id="insights-donut-container" style="height: 240px;">
+                <!-- Pure SVG donut -->
+              </div>
+              <div class="chart-legend" id="insights-donut-legend">
+                <!-- Legend dots -->
+              </div>
+            </div>
+
+            <!-- Top 3 Categories Podium -->
+            <div class="card">
+              <h3 class="card-title">🏆 Top Spending Categories</h3>
+              <div class="podium-container" id="insights-podium-container">
+                <!-- Gold, Silver, Bronze blocks -->
+              </div>
+              <p class="text-secondary" id="insights-podium-text" style="font-size: 0.9rem; text-align: center; line-height: 1.4; border-top: 1px solid var(--border-color); padding-top: 12px;">
+                Add some transaction data to calculate your podium!
+              </p>
+            </div>
+          </div>
+
+          <!-- Section 2 - Category Bar Chart (Full Width) -->
+          <div class="card">
+            <div class="card-header-row">
+              <h3 class="card-title">📊 Category Bar Chart</h3>
+              <label class="text-secondary" style="font-size: 0.85rem; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                <input type="checkbox" id="insights-show-zero-categories"> Show categories with zero spending
+              </label>
+            </div>
+            <div class="chart-container-svg" id="insights-bar-chart-container" style="min-height: 200px; height: auto;">
+              <!-- Dynamic height SVG Bar Rows -->
+            </div>
+          </div>
+
+          <!-- Section 6 - Income vs Expense Trend (Dual Line Chart) -->
+          <div class="card">
+            <h3 class="card-title">📈 Income vs Expense Trend</h3>
+            <div class="chart-container-svg" id="insights-trend-container" style="height: 260px;">
+              <!-- Dual Line SVG -->
+            </div>
+            <div style="display: flex; justify-content: center; gap: 24px; font-size: 0.85rem;">
+              <span style="display: flex; align-items: center; gap: 8px;"><span style="display: inline-block; width: 12px; height: 3px; background: var(--success);"></span> Income</span>
+              <span style="display: flex; align-items: center; gap: 8px;"><span style="display: inline-block; width: 12px; height: 3px; background: var(--danger);"></span> Expenses</span>
+            </div>
+          </div>
+
+          <!-- Section 4 - Month by Month Comparison Grouped SVG Chart -->
+          <div class="card">
+            <div class="card-header-row">
+              <h3 class="card-title">📊 Month-over-Month Comparison</h3>
+              <div style="display: flex; background: var(--bg-color); padding: 2px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                <button class="btn btn-secondary btn-sm active" id="insights-mom-by-cat-btn" style="border: none; padding: 4px 10px;">By Category</button>
+                <button class="btn btn-secondary btn-sm" id="insights-mom-total-btn" style="border: none; padding: 4px 10px;">Total Only</button>
+              </div>
+            </div>
+            <div class="chart-container-svg" id="insights-mom-container" style="height: 250px;">
+              <!-- Grouped Bar SVG -->
+            </div>
+            <p class="text-secondary" id="insights-mom-text" style="font-size: 0.9rem; border-top: 1px solid var(--border-color); padding-top: 12px; line-height: 1.4;">
+              Month over month breakdown statement goes here.
+            </p>
+          </div>
+        </div>
+
+        <!-- 6. ALERTS LOG VIEW -->
+        <div id="alerts-view" class="view-container">
+          <div class="card">
+            <h3 class="card-title">🔔 System Notifications</h3>
+            <div id="alerts-active-list" style="display: flex; flex-direction: column; gap: 12px;">
+              <!-- Active alerts -->
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 class="card-title">🗄️ Dismissed Alert History</h3>
+            <div id="alerts-history-list" style="display: flex; flex-direction: column; gap: 12px;">
+              <!-- Dismissed history -->
+            </div>
+          </div>
+        </div>
+
+        <!-- 7. SETTINGS VIEW -->
+        <div id="settings-view" class="view-container">
+          <div class="grid-2">
+            <!-- Main Settings Card -->
+            <div class="card">
+              <h3 class="card-title">⚙️ App Settings</h3>
+              
+              <!-- Set Currency -->
+              <div class="form-group">
+                <label for="settings-currency">Base Currency Symbol</label>
+                <input type="text" id="settings-currency" class="input-control" placeholder="$" value="$" style="max-width: 100px;">
+              </div>
+
+              <!-- Replay Tour -->
+              <div style="border-top: 1px solid var(--border-color); padding-top: 16px;">
+                <h4 style="margin-bottom: 8px;">Guided App Tour</h4>
+                <button class="btn btn-secondary btn-sm" id="btn-settings-replay-tour">Replay Welcome Onboarding Tour</button>
+              </div>
+
+              <!-- Logout -->
+              <div style="border-top: 1px solid var(--border-color); padding-top: 16px;">
+                <h4 style="margin-bottom: 8px;">Session</h4>
+                <button class="btn btn-secondary" id="btn-settings-logout">Log Out of Clearbook</button>
+              </div>
+            </div>
+
+            <!-- Categories Customizer -->
+            <div class="card">
+              <div class="card-header-row">
+                <h3 class="card-title">🏷️ Manage Custom Categories</h3>
+                <button class="btn btn-primary btn-sm" id="btn-add-category">Add Category</button>
+              </div>
+              <div id="settings-categories-list" style="display: flex; flex-direction: column; gap: 10px; max-height: 280px; overflow-y: auto; padding-right: 4px;">
+                <!-- Categories list with editable attributes -->
+              </div>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <!-- Manage Recurring Lists -->
+            <div class="card">
+              <h3 class="card-title">🔁 Active Recurring Transactions</h3>
+              <div id="settings-recurring-list" style="display: flex; flex-direction: column; gap: 12px; max-height: 260px; overflow-y: auto;">
+                <!-- List of active schedulers -->
+              </div>
+            </div>
+
+            <!-- Data Management -->
+            <div class="card">
+              <h3 class="card-title">💾 Backup & Data Deletion</h3>
+              
+              <div style="display: flex; gap: 12px;">
+                <button class="btn btn-secondary btn-sm" id="btn-export-backup" style="flex: 1;">📥 Export Backup JSON</button>
+                <button class="btn btn-secondary btn-sm" id="btn-import-backup" style="flex: 1;">📤 Import Backup JSON</button>
+              </div>
+              <input type="file" id="import-backup-file-input" style="display: none;" accept=".json">
+
+              <div style="border-top: 1px solid var(--danger-light); padding-top: 16px; margin-top: 8px;">
+                <h4 style="color: var(--danger); margin-bottom: 8px;">Wipe Account Records</h4>
+                <p class="text-secondary" style="font-size: 0.8rem; margin-bottom: 12px;">
+                  This action is permanent and clears all transaction logs, budgets, goals, and debts scoped to your account.
+                </p>
+                <button class="btn btn-danger btn-sm" id="btn-wipe-data-trigger">Delete All My Data</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </main>
+    </div>
+
+  </div>
+
+  <!-- TOOLTIP HOVER DISPLAY -->
+  <div id="global-chart-tooltip" class="chart-tooltip"></div>
+
+  <!-- SYSTEM WIDE MODALS -->
+
+  <!-- 1. ADD/EDIT TRANSACTION MODAL -->
+  <div class="modal-overlay" id="modal-transaction">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="transaction-modal-title">Log Transaction</h3>
+        <button class="modal-close" onclick="closeModal('modal-transaction')">&times;</button>
+      </div>
+      <form id="transaction-form">
+        <input type="hidden" id="tx-edit-id">
+        <div class="modal-body">
+          
+          <div class="type-toggle-container">
+            <button type="button" class="type-toggle-btn expense active" id="tx-toggle-expense" onclick="setTransactionType('expense')">Expense</button>
+            <button type="button" class="type-toggle-btn income" id="tx-toggle-income" onclick="setTransactionType('income')">Income</button>
+          </div>
+
+          <div class="form-group">
+            <label for="tx-amount">Amount</label>
+            <div style="position: relative;">
+              <span id="tx-currency-label" style="position: absolute; left: 14px; top: 10px; font-weight: bold; color: var(--text-secondary); font-size: 1.1rem;">$</span>
+              <input type="number" id="tx-amount" class="input-control" step="0.01" required placeholder="0.00" style="padding-left: 32px; font-size: 1.2rem; font-weight: bold;">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="tx-title">Description / Title</label>
+            <input type="text" id="tx-title" class="input-control" required placeholder="e.g. Weekly Groceries">
+          </div>
+
+          <div class="grid-2" style="gap: 16px;">
+            <div class="form-group">
+              <label for="tx-category">Category</label>
+              <select id="tx-category" class="input-control" required>
+                <!-- Categories listed dynamically -->
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="tx-date">Date</label>
+              <input type="date" id="tx-date" class="input-control" required>
+            </div>
+          </div>
+
+          <!-- Recurring options -->
+          <div style="margin-top: 16px; border-top: 1px solid var(--border-color); padding-top: 16px;">
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer;">
+              <input type="checkbox" id="tx-recurring-toggle"> Recurring Expense / Income
+            </label>
+            
+            <div id="tx-recurring-fields" style="display: none; margin-top: 12px; animation: fadeIn 0.2s;">
+              <div class="grid-2" style="gap: 16px;">
+                <div class="form-group">
+                  <label for="tx-recur-frequency">Repeat Frequency</label>
+                  <select id="tx-recur-frequency" class="input-control">
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly" selected>Monthly</option>
+                    <option value="yearly">Yearly</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="tx-recur-end">End Date (Optional)</label>
+                  <input type="date" id="tx-recur-end" class="input-control">
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-transaction')">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btn-save-transaction">Save Transaction</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. ADD/EDIT BUDGET PLANNER MODAL -->
+  <div class="modal-overlay" id="modal-budget">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="budget-modal-title">Create Budget Plan</h3>
+        <button class="modal-close" onclick="closeModal('modal-budget')">&times;</button>
+      </div>
+      <form id="budget-form">
+        <input type="hidden" id="budget-edit-id">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="budget-name">Budget Plan Name</label>
+            <input type="text" id="budget-name" class="input-control" required placeholder="e.g. Monthly Budget or Holiday Trip">
+          </div>
+
+          <div class="grid-2" style="gap: 16px;">
+            <div class="form-group">
+              <label for="budget-start">Start Date</label>
+              <input type="date" id="budget-start" class="input-control" required>
+            </div>
+            <div class="form-group">
+              <label for="budget-end">End Date</label>
+              <input type="date" id="budget-end" class="input-control" required>
+            </div>
+          </div>
+
+          <div style="border-top: 1px solid var(--border-color); padding-top: 16px; margin-top: 16px;">
+            <h4 style="font-size: 0.9rem; margin-bottom: 12px;">Category Limits</h4>
+            <div id="budget-category-limits" style="display: flex; flex-direction: column; gap: 12px; max-height: 200px; overflow-y: auto; padding-right: 4px;">
+              <!-- Limits inputs dynamically created here -->
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-budget')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Create Budget</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 3. ADD/EDIT SAVINGS GOAL MODAL -->
+  <div class="modal-overlay" id="modal-saving">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="saving-modal-title">Configure Savings Goal</h3>
+        <button class="modal-close" onclick="closeModal('modal-saving')">&times;</button>
+      </div>
+      <form id="saving-form">
+        <input type="hidden" id="saving-edit-id">
+        <div class="modal-body">
+          
+          <div class="grid-2" style="gap: 16px; grid-template-columns: 80px 1fr;">
+            <div class="form-group">
+              <label for="saving-emoji">Emoji</label>
+              <select id="saving-emoji" class="input-control" style="font-size: 1.3rem;">
+                <option value="🐖">🐖</option>
+                <option value="🏠">🏠</option>
+                <option value="🚗">🚗</option>
+                <option value="✈️">✈️</option>
+                <option value="🎓">🎓</option>
+                <option value="💍">💍</option>
+                <option value="💻">💻</option>
+                <option value="🏖️">🏖️</option>
+                <option value="💰">💰</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="saving-name">Goal Name</label>
+              <input type="text" id="saving-name" class="input-control" required placeholder="e.g. Emergency Fund">
+            </div>
+          </div>
+
+          <div class="grid-2" style="gap: 16px;">
+            <div class="form-group">
+              <label for="saving-target">Target Amount</label>
+              <input type="number" id="saving-target" class="input-control" step="0.01" required placeholder="0.00">
+            </div>
+            <div class="form-group">
+              <label for="saving-current">Current Saved</label>
+              <input type="number" id="saving-current" class="input-control" step="0.01" required placeholder="0.00" value="0.00">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="saving-date">Target Completion Date (Optional)</label>
+            <input type="date" id="saving-date" class="input-control">
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-saving')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Goal</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 4. ADD/EDIT DEBT MODAL -->
+  <div class="modal-overlay" id="modal-debt">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="debt-modal-title">Track Debt / Loan</h3>
+        <button class="modal-close" onclick="closeModal('modal-debt')">&times;</button>
+      </div>
+      <form id="debt-form">
+        <input type="hidden" id="debt-edit-id">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="debt-name">Debt Name</label>
+            <input type="text" id="debt-name" class="input-control" required placeholder="e.g. Student Loan or Car Financing">
+          </div>
+
+          <div class="form-group">
+            <label for="debt-type">Debt Type</label>
+            <select id="debt-type" class="input-control">
+              <option value="owe">I owe (Lender / Institution)</option>
+              <option value="owed">Owed to me (Debtor)</option>
+            </select>
+          </div>
+
+          <div class="grid-2" style="gap: 16px;">
+            <div class="form-group">
+              <label for="debt-total">Total Amount</label>
+              <input type="number" id="debt-total" class="input-control" step="0.01" required placeholder="0.00">
+            </div>
+            <div class="form-group">
+              <label for="debt-remaining">Remaining Balance</label>
+              <input type="number" id="debt-remaining" class="input-control" step="0.01" required placeholder="0.00">
+            </div>
+          </div>
+
+          <div class="grid-2" style="gap: 16px;">
+            <div class="form-group">
+              <label for="debt-rate">Interest Rate % (Optional)</label>
+              <input type="number" id="debt-rate" class="input-control" step="0.01" placeholder="0.00">
+            </div>
+            <div class="form-group">
+              <label for="debt-payment">Monthly Payment</label>
+              <input type="number" id="debt-payment" class="input-control" step="0.01" required placeholder="0.00">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="debt-due-date">Due / Payoff Date</label>
+            <input type="date" id="debt-due-date" class="input-control" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-debt')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Debt</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 5. LOG DEBT PAYMENT MODAL -->
+  <div class="modal-overlay" id="modal-debt-payment">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Log Debt Payment</h3>
+        <button class="modal-close" onclick="closeModal('modal-debt-payment')">&times;</button>
+      </div>
+      <form id="debt-payment-form">
+        <input type="hidden" id="debt-payment-id">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="debt-payment-amount">Payment Amount</label>
+            <input type="number" id="debt-payment-amount" class="input-control" step="0.01" required placeholder="0.00">
+          </div>
+          <div class="form-group">
+            <label for="debt-payment-date">Payment Date</label>
+            <input type="date" id="debt-payment-date" class="input-control" required>
+          </div>
+          <p class="text-secondary" style="font-size: 0.8rem;">
+            * Logging a payment will reduce the remaining balance of the debt and create a matching expense transaction under the 'Debt Payment' category.
+          </p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-debt-payment')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Log Payment</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 6. ADD CATEGORY MODAL -->
+  <div class="modal-overlay" id="modal-category">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="category-modal-title">Configure Category</h3>
+        <button class="modal-close" onclick="closeModal('modal-category')">&times;</button>
+      </div>
+      <form id="category-form">
+        <input type="hidden" id="category-edit-id">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="category-name">Category Name</label>
+            <input type="text" id="category-name" class="input-control" required placeholder="e.g. Dining Out">
+          </div>
+          
+          <div class="grid-2" style="gap: 16px;">
+            <div class="form-group">
+              <label for="category-emoji">Emoji</label>
+              <input type="text" id="category-emoji" class="input-control" required placeholder="🍔" style="font-size: 1.2rem; text-align: center;">
+            </div>
+            <div class="form-group">
+              <label for="category-color">Hex Color</label>
+              <input type="color" id="category-color" class="input-control" style="height: 44px; padding: 2px;">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('modal-category')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Category</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 7. CSV IMPORT PREVIEW MODAL -->
+  <div class="modal-overlay" id="modal-csv-preview">
+    <div class="modal-content" style="max-width: 780px;">
+      <div class="modal-header">
+        <h3>Preview CSV Transactions</h3>
+        <button class="modal-close" onclick="closeModal('modal-csv-preview')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="text-secondary" style="font-size: 0.85rem; margin-bottom: 12px;">
+          Review the list below. Make sure your values map properly before committing them.
+        </p>
+        <div class="table-container" style="max-height: 320px; overflow-y: auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Type</th>
+                <th>Category</th>
+                <th>Date</th>
+                <th style="text-align: right;">Amount</th>
+              </tr>
+            </thead>
+            <tbody id="csv-preview-tbody">
+              <!-- Dynamically rendered parsed rows -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-csv-preview')">Cancel</button>
+        <button type="button" class="btn btn-primary" id="btn-csv-confirm-import">Import Transactions</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8. INSIGHTS DRILL-DOWN TRANSACTIONS LIST MODAL -->
+  <div class="modal-overlay" id="modal-drill-down">
+    <div class="modal-content insights-drill-modal">
+      <div class="modal-header">
+        <h3 id="drill-down-title">Transactions in Category</h3>
+        <button class="modal-close" onclick="closeModal('modal-drill-down')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="table-container" style="max-height: 380px; overflow-y: auto;">
+          <table>
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Date</th>
+                <th style="text-align: right;">Amount</th>
+              </tr>
+            </thead>
+            <tbody id="drill-down-tbody">
+              <!-- Drill down elements -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-drill-down')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 9. DUSTY CONFIGURATION WARNING BANNER -->
+  <div id="unconfigured-warning-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.95); z-index: 5000; color: white; justify-content: center; align-items: center; padding: 24px;">
+    <div class="auth-card" style="max-width: 520px; border-color: rgba(255,255,255,0.1);">
+      <h2 style="font-size: 1.8rem; margin-bottom: 12px; color: var(--warning); display: flex; align-items: center; gap: 8px;">⚠️ Firebase & SpreadAPI Required</h2>
+      <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 16px; line-height: 1.5;">
+        You are running Clearbook in **Standalone Preview Mode**. All data will be saved inside your local browser's storage until you configure credentials.
+      </p>
+      <div style="background: var(--bg-color); color: var(--text-primary); border-radius: var(--radius-sm); padding: 16px; border: 1px solid var(--border-color); font-size: 0.8rem; margin-bottom: 20px; line-height: 1.4;">
+        <strong>How to fully connect:</strong><br>
+        1. Open <code>config.js</code> in your IDE<br>
+        2. Set up your Google Sheets auth on <a href="https://spreadapi.roombelt.com" target="_blank" style="color: var(--accent); font-weight: bold;">spreadapi.roombelt.com</a><br>
+        3. Create a free Firebase project and enable Firestore Database<br>
+        4. Copy-paste your Firebase configuration and SpreadAPI key into the config variables<br>
+        5. Reload this page to sync to the Cloud!
+      </div>
+      <button class="btn btn-primary" onclick="dismissConfigOverlay()" style="width: 100%;">Continue in Preview Mode</button>
+    </div>
+  </div>
+
+  <!-- 10. SAVINGS GOAL CELEBRATION MODAL -->
+  <div id="milestone-celebration">
+    <div class="milestone-card">
+      <div class="milestone-emoji" id="celebration-emoji">🎉</div>
+      <div class="milestone-title" id="celebration-title">Milestone Achieved!</div>
+      <div class="milestone-desc" id="celebration-desc">You've hit 50% of your savings goal target!</div>
+      <button class="btn btn-primary" onclick="dismissCelebration()">Amazing!</button>
+    </div>
+  </div>
+
+  <!-- 11. WELCOME ONBOARDING TOUR MODAL -->
+  <div class="tour-overlay-window" id="tour-overlay">
+    <div class="tour-spotlight" id="tour-spotlight"></div>
+    <div class="tour-tooltip-card" id="tour-tooltip">
+      <div class="tour-step-indicator" id="tour-step-indicator">Step 1 of 6</div>
+      <div class="tour-text" id="tour-text">Welcome step description text.</div>
+      <div class="tour-buttons">
+        <button class="btn btn-secondary btn-sm" id="tour-btn-prev">Prev</button>
+        <button class="btn btn-secondary btn-sm" id="tour-btn-skip">Skip</button>
+        <button class="btn btn-primary btn-sm" id="tour-btn-next">Next</button>
+      </div>
+    </div>
+
+    <!-- Onboarding Welcome Splash Panel -->
+    <div class="tour-splash" id="tour-splash" style="display: none;">
+      <div class="tour-splash-logo">💼</div>
+      <h1 class="tour-splash-title">Clearbook</h1>
+      <p class="tour-splash-subtitle">Your personal & business finance manager. Clear, private, and simple.</p>
+      <div style="display: flex; gap: 16px;">
+        <button class="btn btn-secondary" onclick="skipTour()">Skip Onboarding</button>
+        <button class="btn btn-primary" onclick="startTourProgress()">Start Dashboard Tour</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Realtime Alert Banners Container -->
+  <div id="alert-banner-container" class="alert-banner-container"></div>
+
+  <!-- Hidden File Input for CSV Upload -->
+  <input type="file" id="csv-file-input" style="display: none;" accept=".csv">
+
+  <!-- Core App Controller Script Loading -->
+  <script type="module" src="app.js"></script>
+
+  <script>
+    // Global bridge scripts for simple HTML onclick routing/modal closures
+    function navigateTo(hash) {
+      window.location.hash = hash;
+    }
+    
+    function closeModal(modalId) {
+      const modal = document.getElementById(modalId);
+      if (modal) modal.classList.remove('active');
+    }
+
+    function switchAuthTab(tab) {
+      const loginForm = document.getElementById('login-form');
+      const signupForm = document.getElementById('signup-form');
+      const loginToggle = document.getElementById('tab-login-toggle');
+      const signupToggle = document.getElementById('tab-signup-toggle');
+      const errorMsg = document.getElementById('auth-error-msg');
+      if (errorMsg) errorMsg.style.display = 'none';
+
+      if (tab === 'login') {
+        loginForm.style.display = 'block';
+        signupForm.style.display = 'none';
+        loginToggle.classList.add('active');
+        signupToggle.classList.remove('active');
+      } else {
+        loginForm.style.display = 'none';
+        signupForm.style.display = 'block';
+        loginToggle.classList.remove('active');
+        signupToggle.classList.add('active');
+      }
+    }
+
+    function dismissConfigOverlay() {
+      document.getElementById('unconfigured-warning-overlay').style.display = 'none';
+    }
+
+    window.closeModal = closeModal;
+    window.navigateTo = navigateTo;
+    window.switchAuthTab = switchAuthTab;
+    window.dismissConfigOverlay = dismissConfigOverlay;
+  </script>
+</body>
+</html>
