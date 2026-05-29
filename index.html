@@ -116,6 +116,7 @@
             <span class="header-subtitle" id="page-subtitle">Welcome back to Clearbook</span>
           </div>
           <div class="header-actions">
+            <button id="theme-toggle-btn" class="alert-bell" onclick="toggleTheme()" style="font-size: 1.1rem; border: 1px solid var(--border-color); background: var(--glass-surface); cursor: pointer;" title="Toggle Dark/Light Mode">🌓</button>
             <div class="alert-bell" onclick="navigateTo('alerts')">
               <span>🔔</span>
               <div id="unread-alert-badge" class="badge-count" style="display: none;">0</div>
@@ -980,6 +981,9 @@
 
   <!-- Realtime Alert Banners Container -->
   <div id="alert-banner-container" class="alert-banner-container"></div>
+
+  <!-- Sleek Toast Notification Container -->
+  <div id="toast-container" style="position: fixed; top: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; max-width: 320px; width: calc(100% - 48px);"></div>
 
   <!-- Hidden File Input for CSV Upload -->
   <input type="file" id="csv-file-input" style="display: none;" accept=".csv">

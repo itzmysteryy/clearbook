@@ -5,10 +5,20 @@ const KEYS = {
   SESSION_TIME: "clearbook_session_time",
   TOUR_COMPLETED: "clearbook_tour_completed",
   CURRENCY_SYMBOL: "clearbook_currency_symbol",
-  DISMISSED_ALERTS: "clearbook_dismissed_alerts"
+  DISMISSED_ALERTS: "clearbook_dismissed_alerts",
+  THEME: "clearbook_theme"
 };
 
 export const Storage = {
+  // Theme Preferences
+  getTheme() {
+    return localStorage.getItem(KEYS.THEME);
+  },
+
+  setTheme(theme) {
+    localStorage.setItem(KEYS.THEME, theme);
+  },
+
   // Session User
   getCurrentUser() {
     const user = localStorage.getItem(KEYS.SESSION_USER);
